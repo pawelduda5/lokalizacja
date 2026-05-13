@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>GPS Lokalizator</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#0f172a;
+    color:white;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    overflow:hidden;
+}
+
+.container{
+    text-align:center;
+    padding:40px;
+    width:100%;
+    max-width:500px;
+}
+
+h1{
+    margin-bottom:30px;
+    font-size:38px;
+}
+
+.logo{
+    width:180px;
+    margin-top:30px;
+    opacity:0;
+    transform:scale(0.7);
+    transition:1s;
+}
+
+.logo.show{
+    opacity:1;
+    transform:scale(1);
+}
+
+.message{
+    margin-top:30px;
+    font-size:26px;
+    letter-spacing:1px;
+}
+
+.coords{
+    margin-top:25px;
+    opacity:0.7;
+    font-size:14px;
+    line-height:1.7;
+}
+
+.loading{
+    margin-top:20px;
+    font-size:18px;
+    opacity:0.8;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>GPS Lokalizator</h1>
+
+    <div id="loading" class="loading">
+        Odczytywanie lokalizacji...
+    </div>
+
+    <div id="result"></div>
+
+    <div id="coords" class="coords"></div>
+
+</div>
+
+<script>
+
+// =====================================
+// STREFY GPS
+// =====================================
+
+const zones = [
+
+	{
+	   name: "Strefa 1",
+        minLat: 50.6342600,
+        maxLat: 50.6342200,
+        minLon: 18.8387000,
+        maxLon: 18.8380000,
+        img: "cd.jpg"
+	},
+    {
+        name: "Strefa 2",
+        minLat: 50.6342600,
+        maxLat: 50.6342200,
+        minLon: 18.8387000,
+        maxLon: 18.8380000,
+        img: "pawel.jpg"
+    },
+    {
+        name: "Strefa 3",
+        minLat: 50.6342601,
+        maxLat: 50.6342900,
+        minLon: 18.8390000,
+        maxLon: 18.8400000,
+        img: "balowa.jpg"
+    }
+];
+
+
+// =====================================
+// START GPS
+// =====================================
+
+window.onload = () => {
+
+    if(!navigator.geolocation){
+        document.getElementById("loading").innerHTML =
+            "Geolokalizacja nie jest wspierana";
+        return;
+    }
+
+    navigator.geolocation.watchPosition(success, error, {
+        enableHighAccuracy:true,
+        maximumAge:0,
+        timeout:5000
+    });
+};
+
+
+// =====================================
+// SUKCES GPS
+// =====================================
+
+function success(position){
+
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+
+    document.getElementById("loading").style.display = "none";
+
+    document.getElementById("coords").innerHTML = `
+        Twoje współrzędne:<br><br>
+        LAT: ${lat}<br>
+        LON: ${lon}
+    `;
+
+    let foundZone = null;
+
+    for (let zone of zones) {
+        if (
+            lat >= zone.minLat &&
+            lat <= zone.maxLat &&
+            lon >= zone.minLon &&
+            lon <= zone.maxLon
+        ) {
+            foundZone = zone;
+            break;
+        }
+    }
+
+    if (foundZone) {
+        document.getElementById("result").innerHTML = `
+            <img class="logo show" src="${foundZone.img}">
+            <div class="message">
+                ${foundZone.name}
+            </div>
+        `;
+    } else {
+        document.getElementById("result").innerHTML = `
+            <div class="message">
+                Jesteś poza strefą
+            </div>
+        `;
+    }
+}
+
+
+// =====================================
+// BŁĄD GPS
+// =====================================
+
+function error(err){
+
+    document.getElementById("loading").style.display = "none";
+
+    document.getElementById("result").innerHTML = `
+        <div class="message">
+            Nie udało się pobrać lokalizacji
+        </div>
+    `;
+
+    console.log(err);
+}
+
+</script>
+
+</body>
+</html>
